@@ -13,7 +13,6 @@ Welcome to the **Carbon Brush Automation Project**, an industrial consultancy in
   - [Installation](#installation)
   - [Usage](#usage)
   - [Functionality](#functionality)
-- [Dataset Structure](#dataset-structure)
 - [Merging Datasets](#merging-datasets)
 - [Future Enhancements](#future-enhancements)
 - [Contact](#contact)
@@ -117,29 +116,6 @@ The dataset collection tool offers the following functionalities:
 - **Merging Datasets:**
   - Consolidates all images from `dataset_n` folders and the `snapshots` folder into a unified `common_dataset` folder, facilitating comprehensive data analysis and machine learning model training.
 
-## Dataset Structure
-
-The collected datasets are organized systematically to ensure ease of access and management.
-avo_automation/
-├── common_dataset/
-│   ├── snapshot_snapshot_1631023445.jpg
-│   ├── dataset_1_frame_1631023450.jpg
-│   ├── dataset_2_frame_1631023460.jpg
-│   └── …
-├── dataset_1/
-│   ├── frame_1631023450.jpg
-│   ├── frame_1631023451.jpg
-│   └── …
-├── dataset_2/
-│   ├── frame_1631023460.jpg
-│   ├── frame_1631023461.jpg
-│   └── …
-├── snapshots/
-│   ├── snapshot_1631023445.jpg
-│   ├── snapshot_1631023500.jpg
-│   └── …
-├── dataset_collection.py
-└── README.md
 ## Merging Datasets
 
 The **Merge** functionality is pivotal for aggregating data from various sources into a single repository. This is especially useful for training comprehensive machine learning models.
