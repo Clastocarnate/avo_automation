@@ -55,8 +55,8 @@ Before setting up the dataset collection tool, ensure you have the following ins
 1. **Clone the Repository:**
 
     ```bash
-    git clone https://github.com/yourusername/carbon-brush-automation.git
-    cd carbon-brush-automation
+    git clone https://github.com/Clastocarnate/avo_automation.git
+    cd avo_automation
     ```
 
 2. **Create a Virtual Environment (Optional but Recommended):**
@@ -120,3 +120,75 @@ The dataset collection tool offers the following functionalities:
 ## Dataset Structure
 
 The collected datasets are organized systematically to ensure ease of access and management.
+avo_automation/
+├── common_dataset/
+│   ├── snapshot_snapshot_1631023445.jpg
+│   ├── dataset_1_frame_1631023450.jpg
+│   ├── dataset_2_frame_1631023460.jpg
+│   └── …
+├── dataset_1/
+│   ├── frame_1631023450.jpg
+│   ├── frame_1631023451.jpg
+│   └── …
+├── dataset_2/
+│   ├── frame_1631023460.jpg
+│   ├── frame_1631023461.jpg
+│   └── …
+├── snapshots/
+│   ├── snapshot_1631023445.jpg
+│   ├── snapshot_1631023500.jpg
+│   └── …
+├── dataset_collection.py
+└── README.md
+## Merging Datasets
+
+The **Merge** functionality is pivotal for aggregating data from various sources into a single repository. This is especially useful for training comprehensive machine learning models.
+
+### How It Works
+
+1. **Click the Merge Button:**
+    - Initiates the merging process, copying all images from existing `dataset_n` folders and the `snapshots` folder into the `common_dataset` folder.
+
+2. **File Naming Convention:**
+    - **Snapshots:** Prefixed with `snapshot_` to differentiate from dataset frames.
+    - **Dataset Frames:** Prefixed with the respective dataset folder name (e.g., `dataset_1_frame_1631023450.jpg`).
+
+3. **Result:**
+    - All images are available in `common_dataset/` for unified access and processing.
+
+### Benefits
+
+- **Centralization:** Simplifies data management by having all relevant images in one location.
+- **Conflict Avoidance:** Prefixed filenames prevent overwriting and maintain traceability of sources.
+- **Ease of Access:** Facilitates seamless integration with machine learning pipelines and data analysis tools.
+
+## Future Enhancements
+
+To further elevate the capabilities of the Carbon Brush Automation Project, consider implementing the following features:
+
+- **Automated Defect Detection:**
+  - Integrate machine learning models to automatically identify and classify defects in carbon brushes.
+  
+- **User Authentication:**
+  - Implement user roles and permissions to secure data and control access to functionalities.
+  
+- **Data Visualization:**
+  - Develop dashboards to visualize data metrics, recording statistics, and defect analysis.
+  
+- **Remote Access:**
+  - Enable remote monitoring and control of the dataset collection tool via a web interface or mobile application.
+  
+- **Advanced Data Management:**
+  - Incorporate database systems for more efficient data storage and retrieval, especially for large-scale datasets.
+
+## Contact
+
+For any inquiries or support, please contact:
+
+- **Name:** Ayush Upadhyay
+- **Email:** [ayush2005au@gmail.com](mailto:ayush2005au@gmail.com)
+- **LinkedIn:** [https://www.linkedin.com/in/ayush-upadhyay-b92629272/](https://www.linkedin.com/in/ayush-upadhyay-b92629272/)
+
+---
+
+Thank you for your interest in the **Carbon Brush Quality Check Automation Project**. We are committed to advancing industrial processes through innovative technological solutions.
