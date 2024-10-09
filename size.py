@@ -4,6 +4,7 @@ import pygame
 
 # Load the image
 frame = cv2.imread("snapshots/snapshot_1728449056.jpg")
+frame2 = frame[:,0:500]
 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
 # Initialize Pygame
@@ -24,7 +25,7 @@ BLACK = (0, 0, 0)
 button_width, button_height = 50, 30
 
 # Initial threshold values
-threshold_min = 50
+threshold_min = 95
 threshold_max = 255
 
 # Function to draw buttons
@@ -45,6 +46,21 @@ def draw_buttons():
 def apply_threshold():
     _, threshold = cv2.threshold(gray, threshold_min, threshold_max, cv2.THRESH_BINARY)
     threshold_rgb = cv2.cvtColor(threshold, cv2.COLOR_GRAY2RGB)
+
+    # Find contours
+    contours, _ = cv2.findContours(threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # Draw contours and area
+    for cnt in contours:
+        # Draw the contour on the original frame
+        cv2.drawContours(threshold_rgb, [cnt], -1, (0, 255, 0), 2)
+        # Calculate and put the area text
+        area = cv2.contourArea(cnt)
+        x, y, w, h = cv2.boundingRect(cnt)
+        cv2.putText(threshold_rgb, f"Area: {int(area)}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
+        # Draw bounding box
+        cv2.rectangle(threshold_rgb, (x, y), (x + w, y + h), (255, 0, 0), 2)
+
     surface = pygame.surfarray.make_surface(threshold_rgb.transpose((1, 0, 2)))
     return surface
 

@@ -15,7 +15,7 @@ window = pygame.display.set_mode((width, height))
 pygame.display.set_caption('Live Feed with Record/Snap/Merge')
 
 # Initialize camera
-camera_index = 0  # Default camera index; change if necessary
+camera_index = 2  # Default camera index; change if necessary
 camera = cv2.VideoCapture(camera_index)
 if not camera.isOpened():
     print(f"Error: Could not open camera with index {camera_index}.")
