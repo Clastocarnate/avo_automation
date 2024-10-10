@@ -3,9 +3,11 @@ import numpy as np
 import pygame
 
 # Load the image
-frame = cv2.imread("snapshots/snapshot_1728449056.jpg")
-frame2 = frame[:,0:500]
-gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+frame = cv2.imread("snapshots/snapshot_1728449057.jpg")
+framea = frame[:,0:500]
+frame2 = cv2.bitwise_not(framea)
+
+gray = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
 
 # Initialize Pygame
 pygame.init()
@@ -57,9 +59,10 @@ def apply_threshold():
         # Calculate and put the area text
         area = cv2.contourArea(cnt)
         x, y, w, h = cv2.boundingRect(cnt)
-        cv2.putText(threshold_rgb, f"Area: {int(area)}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
+        if area > 5000:
+            cv2.putText(threshold_rgb, f"Area: {int(area)}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
         # Draw bounding box
-        cv2.rectangle(threshold_rgb, (x, y), (x + w, y + h), (255, 0, 0), 2)
+            cv2.rectangle(threshold_rgb, (x, y), (x + w, y + h), (255, 0, 0), 2)
 
     surface = pygame.surfarray.make_surface(threshold_rgb.transpose((1, 0, 2)))
     return surface
