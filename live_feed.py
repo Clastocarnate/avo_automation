@@ -1,110 +1,80 @@
 import cv2
 import numpy as np
-import pygame
 
-# Initialize Pygame
-pygame.init()
+# Function to do nothing, used as a placeholder for the trackbar callbacks
+def nothing(x):
+    pass
 
-# Initialize webcam capture
+# Initialize webcam
 cap = cv2.VideoCapture(0)
 
-# Desired frame size (you can adjust these values if needed)
-desired_width = 320
-desired_height = 240
+# Create a window named 'HSV Adjuster'
+cv2.namedWindow('HSV Adjuster')
 
-# Set up display
-window_width = desired_width * 2
-window_height = desired_height * 2
-window = pygame.display.set_mode((window_width, window_height))
-pygame.display.set_caption("HSV Thresholding")
+# Create trackbars for adjusting HSV values
+cv2.createTrackbar('Hue Min', 'HSV Adjuster', 0, 179, nothing)
+cv2.createTrackbar('Hue Max', 'HSV Adjuster', 179, 179, nothing)
+cv2.createTrackbar('Sat Min', 'HSV Adjuster', 0, 255, nothing)
+cv2.createTrackbar('Sat Max', 'HSV Adjuster', 255, 255, nothing)
+cv2.createTrackbar('Val Min', 'HSV Adjuster', 0, 255, nothing)
+cv2.createTrackbar('Val Max', 'HSV Adjuster', 255, 255, nothing)
 
-# Define HSV thresholds
-thresholds = [
-    {'hue_min': 0, 'hue_max': 180, 'sat_min': 70, 'sat_max': 255, 'val_min': 5, 'val_max': 255},
-    {'hue_min': 0, 'hue_max': 180, 'sat_min': 40, 'sat_max': 255, 'val_min': 75, 'val_max': 255},
-    {'hue_min': 0, 'hue_max': 180, 'sat_min': 75, 'sat_max': 255, 'val_min': 0, 'val_max': 255},
-]
-
-# Function to apply HSV threshold and process the image
-def apply_threshold(frame, hsv_threshold):
-    # Convert the frame to HSV
-    hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    
-    lower_hsv = np.array([hsv_threshold['hue_min'], hsv_threshold['sat_min'], hsv_threshold['val_min']])
-    upper_hsv = np.array([hsv_threshold['hue_max'], hsv_threshold['sat_max'], hsv_threshold['val_max']])
-    
-    # Apply threshold to isolate colors in the range
-    mask = cv2.inRange(hsv_image, lower_hsv, upper_hsv)
-    
-    # Apply the mask to the image
-    result = cv2.bitwise_and(frame, frame, mask=mask)
-    
-    # Find contours
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    
-    # Draw contours and area
-    for cnt in contours:
-        # Draw the contour on the result
-        cv2.drawContours(result, [cnt], -1, (0, 255, 0), 2)
-        # Calculate and put the area text
-        area = cv2.contourArea(cnt)
-        x, y, w, h = cv2.boundingRect(cnt)
-        if area > 5000:
-            cv2.putText(result, f"Area: {int(area)}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
-            # Draw bounding box
-            cv2.rectangle(result, (x, y), (x + w, y + h), (255, 0, 0), 2)
-    return result
-
-clock = pygame.time.Clock()
-
-# Main loop
-running = True
-while running:
-    # Read a frame from the webcam
+while True:
+    # Capture frame from webcam
     ret, frame = cap.read()
     if not ret:
-        print("Failed to read from webcam.")
+        print("Failed to grab frame")
         break
 
-    # Flip the frame horizontally if needed
-    frame = cv2.flip(frame, 1)
-    
-    # Resize the frame to the desired size
-    frame_resized = cv2.resize(frame, (desired_width, desired_height))
-    
-    # Apply the three thresholds
-    processed_images = []
-    for hsv_threshold in thresholds:
-        processed_image = apply_threshold(frame_resized, hsv_threshold)
-        processed_images.append(processed_image)
-    
-    # Create Pygame surfaces from the images
-    # Convert the images to RGB format and transpose axes to match Pygame's coordinate system
-    frame_rgb = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2RGB)
-    frame_surface = pygame.surfarray.make_surface(frame_rgb.transpose((1, 0, 2)))
+    # Resize the frame to 320x240
+    frame_resized = cv2.resize(frame, (320, 240))
 
-    processed_surfaces = []
-    for img in processed_images:
-        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img_surface = pygame.surfarray.make_surface(img_rgb.transpose((1, 0, 2)))
-        processed_surfaces.append(img_surface)
-    
-    # Display the images in a 2x2 grid
-    window.blit(frame_surface, (0, 0))
-    window.blit(processed_surfaces[0], (desired_width, 0))
-    window.blit(processed_surfaces[1], (0, desired_height))
-    window.blit(processed_surfaces[2], (desired_width, desired_height))
-    
-    pygame.display.flip()
-    
-    # Handle events
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
+    # Crop the frame to keep only the first 200 pixels in width
+    frame_cropped = frame
 
-    # Limit frame rate
-    clock.tick(30)
+    # Convert the cropped part of the frame to HSV
+    hsv = cv2.cvtColor(frame_cropped, cv2.COLOR_BGR2HSV)
+
+    # Get current positions of all trackbars
+    h_min = cv2.getTrackbarPos('Hue Min', 'HSV Adjuster')
+    h_max = cv2.getTrackbarPos('Hue Max', 'HSV Adjuster')
+    s_min = cv2.getTrackbarPos('Sat Min', 'HSV Adjuster')
+    s_max = cv2.getTrackbarPos('Sat Max', 'HSV Adjuster')
+    v_min = cv2.getTrackbarPos('Val Min', 'HSV Adjuster')
+    v_max = cv2.getTrackbarPos('Val Max', 'HSV Adjuster')
+
+    # Define lower and upper HSV range
+    lower_hsv = np.array([h_min, s_min, v_min])
+    upper_hsv = np.array([h_max, s_max, v_max])
+
+    # Threshold the HSV image to get only the desired colors
+    mask = cv2.inRange(hsv, lower_hsv, upper_hsv)
+
+    # Apply the mask to get the result
+    result = cv2.bitwise_and(frame_cropped, frame_cropped, mask=mask)
+
+    # Find contours
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # Draw contours and area
+    for cnt in contours:
+        # Calculate area
+        area = cv2.contourArea(cnt)
+        if area > 5000:  # Adjust this threshold as needed
+            x, y, w, h = cv2.boundingRect(cnt)
+            # Draw bounding box
+            cv2.rectangle(result, (x, y), (x + w, y + h), (255, 0, 0), 2)
+            # Put area text
+            cv2.putText(result, f"Area: {int(area)}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
+
+    # Display the result and mask
+    cv2.imshow('HSV Adjuster', result)
+    cv2.imshow('Mask', mask)
+
+    # Exit the loop when 'q' is pressed
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
 
 # Release resources
 cap.release()
-pygame.quit()
+cv2.destroyAllWindows()
