@@ -26,15 +26,12 @@ while True:
         print("Failed to grab frame")
         break
 
-    # Print the original frame size for debugging
-    print(f"Original frame shape: {frame.shape}")
-    
-    # Ensure the frame width is greater than 200 pixels
-    if frame.shape[1] > 200:
-        # Crop the frame to keep only the part starting from column 200 onwards
-        frame_cropped = frame[:, 600:]
+    # Ensure the frame width is greater than 600 pixels for cropping
+    if frame.shape[1] > 600:
+        # Crop the frame to keep only the part starting from column 600 onwards
+        frame_cropped = frame[:, 800:]
     else:
-        print("Frame width is less than 200 pixels, cannot crop.")
+        print("Frame width is less than 600 pixels, cannot crop.")
         frame_cropped = frame
 
     # Convert the cropped part of the frame to HSV
@@ -42,11 +39,11 @@ while True:
 
     # Get current positions of all trackbars
     h_min = cv2.getTrackbarPos('Hue Min', 'HSV Adjuster')
-    h_max = cv2.getTrackbarPos('Hue Max', 'HSV Adjuster')
+    h_max = 180
     s_min = cv2.getTrackbarPos('Sat Min', 'HSV Adjuster')
-    s_max = cv2.getTrackbarPos('Sat Max', 'HSV Adjuster')
+    s_max = 255
     v_min = cv2.getTrackbarPos('Val Min', 'HSV Adjuster')
-    v_max = cv2.getTrackbarPos('Val Max', 'HSV Adjuster')
+    v_max = 255
 
     # Define lower and upper HSV range
     lower_hsv = np.array([h_min, s_min, v_min])
@@ -61,21 +58,25 @@ while True:
     # Find contours
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    # Draw contours and area
+    # Draw contours and bounding boxes along with the area
     for cnt in contours:
-        # Calculate area
-        cv2.drawContours(result, [cnt], -1, (0, 255, 0), 2)
+        # Calculate the area of the contour
         area = cv2.contourArea(cnt)
-        if area > 5000:  # Adjust this threshold as needed
+        if area > 5000 and area<50000:  # Adjust this threshold as needed
+            # Draw contours
+            cv2.drawContours(result, [cnt], -1, (0, 255, 0), 2)
+            
+            # Calculate the bounding box around the contour
             x, y, w, h = cv2.boundingRect(cnt)
-            # Draw bounding box
-            cv2.rectangle(result, (x, y), (x + w, y + h), (255, 0, 0), 2)
-            # Put area text
-            cv2.putText(result, f"Area: {int(area)}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
+            # Draw the bounding box
+            cv2.rectangle(frame_cropped, (x, y), (x + w, y + h), (255, 0, 0), 2)
+            
+            # Display the area inside or next to the bounding box
+            cv2.putText(frame_cropped, f"Area: {int(area)}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
 
     # Display the result and mask
-    cv2.imshow('HSV Adjuster', result)
-    cv2.imshow('Mask', mask)
+    cv2.imshow('HSV Adjuster', frame_cropped)
+   
 
     # Exit the loop when 'q' is pressed
     if cv2.waitKey(1) & 0xFF == ord('q'):
