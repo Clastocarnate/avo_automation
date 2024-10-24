@@ -26,11 +26,16 @@ while True:
         print("Failed to grab frame")
         break
 
-    # Resize the frame to 320x240
-    frame_resized = cv2.resize(frame, (320, 240))
-
-    # Crop the frame to keep only the first 200 pixels in width
-    frame_cropped = frame
+    # Print the original frame size for debugging
+    print(f"Original frame shape: {frame.shape}")
+    
+    # Ensure the frame width is greater than 200 pixels
+    if frame.shape[1] > 200:
+        # Crop the frame to keep only the part starting from column 200 onwards
+        frame_cropped = frame[:, 600:]
+    else:
+        print("Frame width is less than 200 pixels, cannot crop.")
+        frame_cropped = frame
 
     # Convert the cropped part of the frame to HSV
     hsv = cv2.cvtColor(frame_cropped, cv2.COLOR_BGR2HSV)
@@ -59,6 +64,7 @@ while True:
     # Draw contours and area
     for cnt in contours:
         # Calculate area
+        cv2.drawContours(result, [cnt], -1, (0, 255, 0), 2)
         area = cv2.contourArea(cnt)
         if area > 5000:  # Adjust this threshold as needed
             x, y, w, h = cv2.boundingRect(cnt)
