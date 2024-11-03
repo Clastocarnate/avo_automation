@@ -12,12 +12,13 @@ hsv_image = cv2.cvtColor(framea, cv2.COLOR_BGR2HSV)
 hsv_values = [
     {'hue_min': 0, 'hue_max': 180, 'sat_min': 0, 'sat_max': 255, 'val_min': 0, 'val_max': 255},
     {'hue_min': 0, 'hue_max': 180, 'sat_min': 0, 'sat_max': 255, 'val_min': 0, 'val_max': 255},
+    {'hue_min': 0, 'hue_max': 180, 'sat_min': 0, 'sat_max': 255, 'val_min': 0, 'val_max': 255},
     {'hue_min': 0, 'hue_max': 180, 'sat_min': 0, 'sat_max': 255, 'val_min': 0, 'val_max': 255}
 ]
 
-# Create windows for three simultaneous displays
-window_names = ['HSV Adjuster 1', 'HSV Adjuster 2', 'HSV Adjuster 3']
-for i in range(3):
+# Create windows for four simultaneous displays
+window_names = ['Live Feed', 'Head', 'Tail', 'Brush']
+for i in range(4):
     cv2.namedWindow(window_names[i])
 
 # Function to do nothing (placeholder for trackbar callbacks)
@@ -25,7 +26,7 @@ def nothing(x):
     pass
 
 # Create trackbars for each window
-for i in range(3):
+for i in range(4):
     cv2.createTrackbar('Hue Min', window_names[i], hsv_values[i]['hue_min'], 179, nothing)
     cv2.createTrackbar('Hue Max', window_names[i], hsv_values[i]['hue_max'], 179, nothing)
     cv2.createTrackbar('Sat Min', window_names[i], hsv_values[i]['sat_min'], 255, nothing)
@@ -33,8 +34,8 @@ for i in range(3):
     cv2.createTrackbar('Val Min', window_names[i], hsv_values[i]['val_min'], 255, nothing)
     cv2.createTrackbar('Val Max', window_names[i], hsv_values[i]['val_max'], 255, nothing)
 
-# Function to apply HSV threshold and return the masked image for each window
-def apply_threshold(hsv):
+# Function to apply HSV threshold and return the masked image and frame with bounding boxes for each window
+def apply_threshold(hsv, frame_copy):
     lower_hsv = np.array([hsv['hue_min'], hsv['sat_min'], hsv['val_min']])
     upper_hsv = np.array([hsv['hue_max'], hsv['sat_max'], hsv['val_max']])
 
@@ -47,20 +48,23 @@ def apply_threshold(hsv):
     # Find contours
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    # Draw contours and bounding boxes with the area
+    # Draw contours and bounding boxes with the area on the frame copy
     for cnt in contours:
         area = cv2.contourArea(cnt)
         x, y, w, h = cv2.boundingRect(cnt)
         if area > 5000:  # Filter based on the area threshold
-            cv2.rectangle(result, (x, y), (x + w, y + h), (255, 0, 0), 2)
-            cv2.putText(result, f"Area: {int(area)}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
+            cv2.rectangle(frame_copy, (x, y), (x + w, y + h), (255, 0, 0), 2)
+            cv2.putText(frame_copy, f"Area: {int(area)}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
 
-    return result
+    return frame_copy
 
 # Main loop
 while True:
+    # Create a copy of the original framea for each window
+    frames = [framea.copy() for _ in range(4)]
+    
     # Loop through each window
-    for i in range(3):
+    for i in range(4):
         # Get current positions of all trackbars
         hsv_values[i]['hue_min'] = cv2.getTrackbarPos('Hue Min', window_names[i])
         hsv_values[i]['hue_max'] = cv2.getTrackbarPos('Hue Max', window_names[i])
@@ -69,8 +73,8 @@ while True:
         hsv_values[i]['val_min'] = cv2.getTrackbarPos('Val Min', window_names[i])
         hsv_values[i]['val_max'] = cv2.getTrackbarPos('Val Max', window_names[i])
 
-        # Apply the thresholding and get the masked image
-        threshold_image = apply_threshold(hsv_values[i])
+        # Apply the thresholding and get the frame with bounding boxes and area text
+        threshold_image = apply_threshold(hsv_values[i], frames[i])
 
         # Show the result in the respective window
         cv2.imshow(window_names[i], threshold_image)
