@@ -10,7 +10,6 @@ def main_window():
     # Create the main root window
     root = tk.Tk()
     root.geometry("700x820")
-    root.bind("<Configure>", lambda event: resize_elements(root))
 
     # Set background image
     bg_image = Image.open("assets/flat_bg.png")
@@ -26,23 +25,9 @@ def main_window():
     start_photo = ImageTk.PhotoImage(start_image)
     start_button = tk.Button(root, image=start_photo, command=lambda: goto_main_menu(root), borderwidth=0)
     start_button.image = start_photo
-    start_button.place(relx=0.5, rely=0.7, anchor="center")
+    start_button.place(x=250, y=560)
 
     root.mainloop()
-
-def resize_elements(root):
-    # Adjust elements based on window resizing
-    for widget in root.winfo_children():
-        if isinstance(widget, tk.Label) and hasattr(widget, 'image'):
-            widget.image = ImageTk.PhotoImage(Image.open("assets/flat_bg.png").resize((root.winfo_width(), root.winfo_height()), Image.LANCZOS))
-            widget.config(image=widget.image)
-        elif isinstance(widget, tk.Button) and hasattr(widget, 'image'):
-            widget_width = root.winfo_width() // 3
-            widget_height = root.winfo_height() // 12
-            widget_image = Image.open("assets/start.jpg").resize((widget_width, widget_height), Image.LANCZOS)
-            widget.image = ImageTk.PhotoImage(widget_image)
-            widget.config(image=widget.image)
-            widget.place(relx=0.5, rely=0.7, anchor="center")
 
 def goto_main_menu(root):
     # Destroy the welcome window
@@ -51,7 +36,6 @@ def goto_main_menu(root):
     # Create the main menu window
     main_menu = tk.Tk()
     main_menu.geometry("700x820")
-    main_menu.bind("<Configure>", lambda event: resize_elements(main_menu))
 
     # Set background image
     bg_image = Image.open("assets/flat_bg.png")
@@ -62,20 +46,33 @@ def goto_main_menu(root):
     bg_label.place(relwidth=1, relheight=1)
 
     # Add buttons for each menu item with 50 px spacing between them
-    buttons = [
-        ("assets/New.jpg", open_new_dataset),
-        ("assets/select_brush.jpg", open_select_brush),
-        ("assets/train.jpg", open_train),
-        ("assets/Daily_Operations.jpg", open_daily_operations),
-    ]
+    new_dataset_image = Image.open("assets/New.jpg")
+    new_dataset_image = new_dataset_image.resize((200, 75), Image.LANCZOS)
+    new_dataset_photo = ImageTk.PhotoImage(new_dataset_image)
+    new_dataset_button = tk.Button(main_menu, image=new_dataset_photo, command=lambda: open_new_dataset(main_menu), borderwidth=0)
+    new_dataset_button.image = new_dataset_photo
+    new_dataset_button.place(x=250, y=260)
 
-    for i, (image_path, command) in enumerate(buttons):
-        button_image = Image.open(image_path)
-        button_image = button_image.resize((200, 75), Image.LANCZOS)
-        button_photo = ImageTk.PhotoImage(button_image)
-        button = tk.Button(main_menu, image=button_photo, command=lambda c=command: c(main_menu), borderwidth=0)
-        button.image = button_photo
-        button.place(relx=0.5, y=260 + i * 150, anchor="n")
+    select_brush_image = Image.open("assets/select_brush.jpg")
+    select_brush_image = select_brush_image.resize((200, 75), Image.LANCZOS)
+    select_brush_photo = ImageTk.PhotoImage(select_brush_image)
+    select_brush_button = tk.Button(main_menu, image=select_brush_photo, command=open_select_brush, borderwidth=0)
+    select_brush_button.image = select_brush_photo
+    select_brush_button.place(x=250, y=410)
+
+    train_image = Image.open("assets/train.jpg")
+    train_image = train_image.resize((200, 75), Image.LANCZOS)
+    train_photo = ImageTk.PhotoImage(train_image)
+    train_button = tk.Button(main_menu, image=train_photo, command=open_train, borderwidth=0)
+    train_button.image = train_photo
+    train_button.place(x=250, y=560)
+
+    daily_operations_image = Image.open("assets/Daily_Operations.jpg")
+    daily_operations_image = daily_operations_image.resize((200, 75), Image.LANCZOS)
+    daily_operations_photo = ImageTk.PhotoImage(daily_operations_image)
+    daily_operations_button = tk.Button(main_menu, image=daily_operations_photo, command=open_daily_operations, borderwidth=0)
+    daily_operations_button.image = daily_operations_photo
+    daily_operations_button.place(x=250, y=680)
 
     main_menu.protocol("WM_DELETE_WINDOW", lambda: on_close(main_menu))
     main_menu.mainloop()
@@ -91,7 +88,7 @@ def open_select_brush():
 def open_train():
     # Open a new window for Train
     new_window("Train")
-    subprocess.Popen(["python", "train.py"])
+    
 
 def open_daily_operations():
     # Open a new window for Daily Operations
@@ -102,7 +99,6 @@ def select_brush_window():
     window = tk.Toplevel()
     window.title("Select Brush")
     window.geometry("700x820")
-    window.bind("<Configure>", lambda event: resize_elements(window))
 
     # Set background image
     bg_image = Image.open("assets/Technology Wallpaper.jpg")
@@ -167,7 +163,6 @@ def new_window(title):
     window = tk.Toplevel()
     window.title(title)
     window.geometry("700x820")
-    window.bind("<Configure>", lambda event: resize_elements(window))
 
     # Set background image
     bg_image = Image.open("assets/flat_bg.png")
