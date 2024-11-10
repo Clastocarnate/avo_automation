@@ -8,6 +8,8 @@ def update_image(val):
     # Get current positions of trackbars
     angle = cv2.getTrackbarPos('Rotate', 'Image')
     zoom_percent = cv2.getTrackbarPos('Zoom', 'Image')
+    canny_thresh_1 = cv2.getTrackbarPos('Canny Thresh 1', 'Image')
+    canny_thresh_2 = cv2.getTrackbarPos('Canny Thresh 2', 'Image')
     global vertical_position_1, vertical_position_2, horizontal_position_1, horizontal_position_2
     vertical_position_1 = cv2.getTrackbarPos('Vertical Line 1', 'Image')
     vertical_position_2 = cv2.getTrackbarPos('Vertical Line 2', 'Image')
@@ -43,29 +45,16 @@ def update_image(val):
     right = max(vertical_position_1, vertical_position_2)
     cropped_area = zoomed_image[top:bottom, left:right]
 
-    # Convert the cropped area to HSV
-    hsv_cropped = cv2.cvtColor(cropped_area, cv2.COLOR_BGR2HSV)
+    # Apply Canny edge detection
+    edges = cv2.Canny(cropped_area, canny_thresh_1, canny_thresh_2)
 
-    # Get HSV trackbar positions
-    hue_min = cv2.getTrackbarPos('Hue Min', 'Image')
-    hue_max = cv2.getTrackbarPos('Hue Max', 'Image')
-    sat_min = cv2.getTrackbarPos('Sat Min', 'Image')
-    sat_max = cv2.getTrackbarPos('Sat Max', 'Image')
-    val_min = cv2.getTrackbarPos('Val Min', 'Image')
-    val_max = cv2.getTrackbarPos('Val Max', 'Image')
-
-    # Apply HSV thresholding
-    lower_hsv = np.array([hue_min, sat_min, val_min])
-    upper_hsv = np.array([hue_max, sat_max, val_max])
-    mask = cv2.inRange(hsv_cropped, lower_hsv, upper_hsv)
-    result = cv2.bitwise_and(cropped_area, cropped_area, mask=mask)
-
-    # Find contours and draw bounding boxes
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # Find contours and draw the bounding boxes of contours with area greater than 100
+    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    result = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
     for cnt in contours:
-        x, y, w, h = cv2.boundingRect(cnt)
         area = cv2.contourArea(cnt)
         if area > 0:
+            x, y, w, h = cv2.boundingRect(cnt)
             cv2.rectangle(result, (x, y), (x + w, y + h), (255, 0, 0), 2)
             cv2.putText(result, f"Area: {int(area)}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
 
@@ -90,7 +79,7 @@ def take_snapshot():
     print(f"Snapshot saved as {snapshot_filename}")
 
 # Load an image
-image = cv2.imread('snapshots/globalWiper.JPG')
+image = cv2.imread('scripts/861bd766-797b-4d13-aed4-08f6b8facf55.jpg')
 height, width = image.shape[:2]
 
 # Create a window with reduced height
@@ -104,12 +93,8 @@ cv2.createTrackbar('Vertical Line 1', 'Image', width // 3, width, update_image)
 cv2.createTrackbar('Vertical Line 2', 'Image', 2 * width // 3, width, update_image)
 cv2.createTrackbar('Horizontal Line 1', 'Image', height // 3, height, update_image)
 cv2.createTrackbar('Horizontal Line 2', 'Image', 2 * height // 3, height, update_image)
-cv2.createTrackbar('Hue Min', 'Image', 0, 180, update_image)
-cv2.createTrackbar('Hue Max', 'Image', 180, 180, update_image)
-cv2.createTrackbar('Sat Min', 'Image', 0, 255, update_image)
-cv2.createTrackbar('Sat Max', 'Image', 255, 255, update_image)
-cv2.createTrackbar('Val Min', 'Image', 0, 255, update_image)
-cv2.createTrackbar('Val Max', 'Image', 255, 255, update_image)
+cv2.createTrackbar('Canny Thresh 1', 'Image', 100, 500, update_image)
+cv2.createTrackbar('Canny Thresh 2', 'Image', 200, 500, update_image)
 
 # Initial display
 update_image(0)
