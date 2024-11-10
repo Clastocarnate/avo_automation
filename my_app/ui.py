@@ -87,12 +87,13 @@ def open_select_brush():
 
 def open_train():
     # Open a new window for Train
-    new_window("Train")
+    subprocess.Popen(["python", "train.py"])
     
 
 def open_daily_operations():
     # Open a new window for Daily Operations
-    new_window("Daily Operations")
+    
+    subprocess.Popen(["python", "daily_operations.py"])
 
 def select_brush_window():
     # Create a new window for Select Brush
@@ -151,12 +152,17 @@ def select_brush_window():
         y_position = 20 + row * (button_height + 20)
 
         # Create button
-        button = tk.Button(window, image=button_photo, borderwidth=0)
+        button = tk.Button(window, image=button_photo, borderwidth=0, command=lambda folder=folder: save_brush_selection(folder))
         button.image = button_photo
         button.place(x=x_position, y=y_position)
 
     window.protocol("WM_DELETE_WINDOW", lambda: on_close(window))
     window.mainloop()
+
+def save_brush_selection(folder):
+    # Save the selected folder name to brush.txt
+    with open("brush.txt", "w") as file:
+        file.write(folder)
 
 def new_window(title):
     # Create a new window with the given title

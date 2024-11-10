@@ -12,7 +12,7 @@ width, height = 800, 600  # Increased width for better layout with three buttons
 button_height = 100  # Space allocated for buttons
 video_height = height - button_height
 window = pygame.display.set_mode((width, height))
-pygame.display.set_caption('Live Feed with Record/Snap/Merge')
+pygame.display.set_caption('Live Feed with Create Dataset/Snap/Merge')
 
 # Initialize camera
 camera_index = 0  # Default camera index; change if necessary
@@ -32,74 +32,47 @@ GRAY = (50, 50, 50)
 # Set fonts
 font = pygame.font.SysFont(None, 40)
 
-# Button states
-is_recording = False
+# Dataset states
 record_folder = None
 
-# Determine the next dataset number
-def get_next_dataset_number(base_name='dataset'):
-    existing_folders = [folder for folder in os.listdir('.') if os.path.isdir(folder) and folder.startswith(base_name + '_')]
-    numbers = []
-    for folder in existing_folders:
-        try:
-            num = int(folder.split('_')[1])
-            numbers.append(num)
-        except (IndexError, ValueError):
-            continue
-    next_num = max(numbers) + 1 if numbers else 1
-    return next_num
-
-dataset_count = get_next_dataset_number()
+# Function to get the next dataset folder name
+def get_next_dataset_folder():
+    dataset_count = 1
+    while os.path.exists(f"dataset_{dataset_count}"):
+        dataset_count += 1
+    return f"dataset_{dataset_count}"
 
 # Create buttons
 button_width = 150
 button_height_actual = 60
 padding = 20
 
-# Positions for three buttons: Record, Snap, Merge
-record_button = pygame.Rect(padding, video_height + (button_height - button_height_actual) // 2, button_width, button_height_actual)
+# Positions for three buttons: Create Dataset, Snap, Merge
+create_dataset_button = pygame.Rect(padding, video_height + (button_height - button_height_actual) // 2, button_width, button_height_actual)
 snap_button = pygame.Rect((width - button_width) // 2, video_height + (button_height - button_height_actual) // 2, button_width, button_height_actual)
 merge_button = pygame.Rect(width - button_width - padding, video_height + (button_height - button_height_actual) // 2, button_width, button_height_actual)
 
-# Create directories if not exist
-if not os.path.exists('snapshots'):
-    os.makedirs('snapshots')
-
 # Save a snapshot
 def save_snapshot(frame):
-    filename = f'snapshots/snapshot_{int(time.time())}.jpg'
-    cv2.imwrite(filename, frame)
-    print(f'Snapshot saved: {filename}')
-
-# Start or stop recording
-def toggle_recording():
-    global is_recording, record_folder, dataset_count
-    if is_recording:
-        print(f"Stopped recording to {record_folder}")
-        is_recording = False
-    else:
-        record_folder = f'dataset_{dataset_count}'
-        os.makedirs(record_folder, exist_ok=True)
-        print(f"Started recording to {record_folder}")
-        is_recording = True
-
-# Save frame to recording folder
-def save_frame(frame):
-    if is_recording and record_folder:
-        filename = f'{record_folder}/frame_{int(time.time())}.jpg'
+    global record_folder
+    if record_folder:
+        filename = os.path.join(record_folder, f'snapshot_{int(time.time())}.jpg')
         cv2.imwrite(filename, frame)
-        print(f"Frame saved: {filename}")
+        print(f'Snapshot saved: {filename}')
+    else:
+        print("No dataset folder exists. Please create a dataset first.")
+
+# Create a new dataset folder
+def create_dataset():
+    global record_folder
+    record_folder = get_next_dataset_folder()
+    os.makedirs(record_folder, exist_ok=True)
+    print(f"Created dataset folder: {record_folder}")
 
 # Merge all datasets and snapshots into common_dataset
 def merge_datasets():
     common_folder = 'common_dataset'
     os.makedirs(common_folder, exist_ok=True)
-    # Merge snapshots
-    snapshot_files = [f for f in os.listdir('snapshots') if os.path.isfile(os.path.join('snapshots', f))]
-    for file in snapshot_files:
-        src = os.path.join('snapshots', file)
-        dst = os.path.join(common_folder, f'snapshot_{file}')
-        shutil.copy2(src, dst)
     # Merge datasets
     dataset_folders = [folder for folder in os.listdir('.') if os.path.isdir(folder) and folder.startswith('dataset_')]
     for folder in dataset_folders:
@@ -132,10 +105,8 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if record_button.collidepoint(event.pos):
-                toggle_recording()
-                if is_recording:
-                    dataset_count += 1  # Prepare for next dataset
+            if create_dataset_button.collidepoint(event.pos):
+                create_dataset()
             if snap_button.collidepoint(event.pos):
                 # Convert Pygame surface back to OpenCV format
                 snapshot = pygame.surfarray.array3d(frame_rgb)
@@ -152,28 +123,23 @@ while running:
     pygame.draw.line(window, GRAY, (0, video_height), (width, video_height), 2)
 
     # Draw buttons on top of the video frame
-    pygame.draw.rect(window, GREEN if is_recording else RED, record_button)
+    pygame.draw.rect(window, GREEN, create_dataset_button)
     pygame.draw.rect(window, BLUE, snap_button)
     pygame.draw.rect(window, (128, 0, 128), merge_button)  # Purple color for Merge button
 
     # Draw button text
-    record_text = font.render('Stop' if is_recording else 'Record', True, WHITE)
+    create_text = font.render('Create Dataset', True, WHITE)
     snap_text = font.render('Snap', True, WHITE)
     merge_text = font.render('Merge', True, WHITE)
 
     # Center the text on the buttons
-    record_text_rect = record_text.get_rect(center=record_button.center)
+    create_text_rect = create_text.get_rect(center=create_dataset_button.center)
     snap_text_rect = snap_text.get_rect(center=snap_button.center)
     merge_text_rect = merge_text.get_rect(center=merge_button.center)
 
-    window.blit(record_text, record_text_rect)
+    window.blit(create_text, create_text_rect)
     window.blit(snap_text, snap_text_rect)
     window.blit(merge_text, merge_text_rect)
-
-    # Save frame if recording
-    frame_bgr = cv2.cvtColor(pygame.surfarray.array3d(frame_rgb), cv2.COLOR_RGB2BGR)
-    frame_bgr = cv2.transpose(frame_bgr)
-    save_frame(frame_bgr)
 
     # Update display
     pygame.display.update()
